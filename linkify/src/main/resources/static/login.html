@@ -1,12 +1,9 @@
-```html
 <!DOCTYPE html>
 <html>
 <head>
 
     <meta charset="UTF-8">
     <title>Linkify Login</title>
-
-    <!-- ✅ Mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Fonts + Bootstrap -->
@@ -75,13 +72,32 @@
             color: white;
         }
 
-        .btn-custom:hover {
-            transform: scale(1.05);
+        /* ✅ Register button ALWAYS GREEN */
+        .register-btn,
+        .register-btn:hover,
+        .register-btn:focus,
+        .register-btn:active {
+            background: #10b981 !important;
+            color: white !important;
+            border: none !important;
         }
 
+        /* Smooth hover animation (NO SCALE ISSUE) */
+        .btn-custom,
         .register-btn {
-            background: #10b981;
-            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .btn-custom:hover,
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-custom:active,
+        .register-btn:active {
+            transform: translateY(0);
+            box-shadow: none;
         }
 
         .toggle-mode {
@@ -101,11 +117,14 @@
 
         .loader {
             display: none;
-            margin-top: 10px;
             color: white;
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
-        /* 🌙 Dark Mode */
+        /* Dark Mode */
         .dark-mode {
             background: #0f172a !important;
         }
@@ -121,7 +140,6 @@
             border: none;
         }
 
-        /* 📱 Mobile */
         @media (max-width: 576px) {
             body {
                 padding: 15px;
@@ -143,7 +161,7 @@
     <div class="toggle-mode" onclick="toggleMode()">🌙</div>
 
     <h2>🔗 Linkify</h2>
-    <p style="color:white;">Login to continue</p>
+    <p style="color:white;">Login / Register</p>
 
     <input id="user" class="form-control" placeholder="Username">
 
@@ -152,10 +170,11 @@
         <span class="toggle" onclick="togglePassword()">👁️</span>
     </div>
 
-    <div class="error" id="error">Invalid login</div>
+    <div class="error" id="error"></div>
 
-    <button class="btn btn-custom w-100 mt-2" onclick="login()">Login</button>
-    <button class="btn register-btn w-100 mt-2" onclick="register()">Register</button>
+    <!-- SAME FUNCTION -->
+    <button class="btn btn-custom w-100 mt-2" onclick="handleAuth('login')">Login</button>
+    <button class="btn register-btn w-100 mt-2" onclick="handleAuth('register')">Register</button>
 
     <div class="loader" id="loader">⏳ Processing...</div>
 
@@ -163,17 +182,8 @@
 
 <script>
 
-    window.onload = function () {
-        const theme = localStorage.getItem("theme");
-        if (theme === "dark") {
-            document.body.classList.add("dark-mode");
-        }
-    }
-
     function toggleMode() {
         document.body.classList.toggle("dark-mode");
-        localStorage.setItem("theme",
-            document.body.classList.contains("dark-mode") ? "dark" : "light");
     }
 
     function togglePassword() {
@@ -191,41 +201,29 @@
         error.style.display = "block";
     }
 
-    function register() {
+    function handleAuth(type) {
         let user = document.getElementById("user").value;
         let pass = document.getElementById("pass").value;
 
         showLoader(true);
 
-        fetch("/auth/register?username=" + user + "&password=" + pass, {
-            method: "POST"
-        })
-        .then(res => res.text())
-        .then(data => {
-            showLoader(false);
-            alert(data);
-        });
-    }
-
-    function login() {
-        let user = document.getElementById("user").value;
-        let pass = document.getElementById("pass").value;
-
-        showLoader(true);
-
-        fetch("/auth/login?username=" + user + "&password=" + pass, {
+        fetch("/auth/" + type + "?username=" + user + "&password=" + pass, {
             method: "POST"
         })
         .then(res => res.text())
         .then(data => {
             showLoader(false);
 
-            if (data.includes("successful")) {
+            if (data.toLowerCase().includes("successful")) {
                 localStorage.setItem("user", user);
                 window.location.href = "index.html";
             } else {
                 showError("Invalid username or password");
             }
+        })
+        .catch(() => {
+            showLoader(false);
+            showError("Server error");
         });
     }
 
@@ -233,4 +231,3 @@
 
 </body>
 </html>
-```
