@@ -1,14 +1,15 @@
-# ---------- BUILD STAGE ----------
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-COPY . .
+COPY linkify/pom.xml ./pom.xml
+COPY linkify/src ./src
+COPY linkify/mvnw ./mvnw
+COPY linkify/.mvn ./.mvn
 
 RUN mvn clean package -DskipTests
 
-# ---------- RUN STAGE ----------
-FROM eclipse-temurin:17-jdk
+FROM openjdk:17
 
 WORKDIR /app
 
