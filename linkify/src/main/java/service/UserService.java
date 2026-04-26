@@ -15,14 +15,27 @@ public class UserService {
     @Autowired
     private PasswordEncoder encoder;
 
-    public void register(String username, String password) {
+    // ✅ REGISTER
+    public String register(String username, String password) {
+
+        username = username.trim();
+
+        // ❗ check duplicate user
+        if (repo.findByUsername(username).isPresent()) {
+            return "User already exists";
+        }
+
         User user = new User();
         user.setUsername(username);
         user.setPassword(encoder.encode(password));
+
         repo.save(user);
+
+        return "User saved";
     }
 
+    // ✅ FIND USER
     public User findByUsername(String username) {
-        return repo.findByUsername(username).orElse(null);
+        return repo.findByUsername(username.trim()).orElse(null);
     }
 }
