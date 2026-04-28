@@ -202,29 +202,42 @@
     }
 
     function handleAuth(type) {
-        let user = document.getElementById("user").value;
-        let pass = document.getElementById("pass").value;
+    let user = document.getElementById("user").value.trim();
+    let pass = document.getElementById("pass").value.trim();
 
-        showLoader(true);
+    if(user === "" || pass === ""){
+        showError("Enter username and password");
+        return;
+    }
 
-        fetch("/auth/" + type + "?username=" + user + "&password=" + pass, {
-            method: "POST"
+    showLoader(true);
+
+    fetch("/auth/" + type, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: user,
+            password: pass
         })
-        .then(res => res.text())
-        .then(data => {
-            showLoader(false);
+    })
+    .then(res => res.json())
+    .then(data => {
+        showLoader(false);
 
-            if (data.toLowerCase().includes("successful")) {
-                localStorage.setItem("user", user);
-                window.location.href = "index.html";
-            } else {
-                showError("Invalid username or password");
-            }
-        })
-        .catch(() => {
-            showLoader(false);
-            showError("Server error");
-        });
+        if (data.message) {
+            localStorage.setItem("user", user);
+            window.location.href = "index.html";
+        } else {
+            showError(data.error);
+        }
+    })
+    .catch(() => {
+        showLoader(false);
+        showError("Server error");
+    });
+
     }
 
 </script>

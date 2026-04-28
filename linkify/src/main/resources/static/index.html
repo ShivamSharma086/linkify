@@ -171,7 +171,7 @@
 
 </div>
 
-<script>
+  <script>
 
     let latestURL = "";
 
@@ -197,6 +197,9 @@
         }
     });
 
+    // =========================
+    // URL SHORTENER (UNCHANGED)
+    // =========================
     function shorten() {
         let url = document.getElementById("url").value.trim();
 
@@ -248,7 +251,41 @@
             .then(() => alert("Copied: " + latestURL));
     }
 
-</script>
+    // =========================
+    // AUTH FIX (REGISTER + LOGIN)
+    // =========================
+    function handleAuth(type) {
 
+        let username = document.getElementById("username").value;
+        let password = document.getElementById("password").value;
+
+        fetch(`https://linkify-3.onrender.com/auth/${type}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert(data.message);
+            }
+
+            console.log(data);
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("Server error");
+        });
+    }
+
+    </script>
 </body>
 </html>
