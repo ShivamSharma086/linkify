@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Linkify</title>
 
-    ```
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Fonts + Bootstrap -->
@@ -142,7 +142,7 @@
             color: #60a5fa;
         }
     </style>
-    ```
+
 
 </head>
 
@@ -150,7 +150,6 @@
 
 <div class="card shadow-lg">
 
-    ```
     <div class="toggle-mode" onclick="toggleMode()">🌙</div>
 
     <h2>🔗 Linkify</h2>
@@ -173,119 +172,90 @@
 
   <script>
 
-    let latestURL = "";
+      <script>
 
-    function applyTheme() {
-        const theme = localStorage.getItem("theme");
-        if (theme === "dark") {
-            document.body.classList.add("dark-mode");
-        } else {
-            document.body.classList.remove("dark-mode");
-        }
+  let latestURL = "";
+
+  function applyTheme() {
+      const theme = localStorage.getItem("theme");
+
+      if (theme === "dark") {
+          document.body.classList.add("dark-mode");
+      } else {
+          document.body.classList.remove("dark-mode");
+      }
+  }
+
+  window.onload = applyTheme;
+
+  function toggleMode() {
+      let isDark = document.body.classList.toggle("dark-mode");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+  }
+
+  window.addEventListener("storage", function(event) {
+      if (event.key === "theme") {
+          applyTheme();
+      }
+  });
+
+
+  // =========================
+  // URL SHORTENER FIXED
+  // =========================
+  function shorten() {
+
+    let url = document.getElementById("url").value.trim();
+
+    if (!url) {
+        alert("Enter URL");
+        return;
     }
 
-    window.onload = applyTheme;
+    document.getElementById("result").innerHTML = "Generating...";
 
-    function toggleMode() {
-        let isDark = document.body.classList.toggle("dark-mode");
-        localStorage.setItem("theme", isDark ? "dark" : "light");
-    }
+    fetch("/api/shorten", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            url: url
+        })
+    })
+    .then(res => res.text())
+    .then(data => {
 
-    window.addEventListener("storage", function (event) {
-        if (event.key === "theme") {
-            applyTheme();
-        }
+        latestURL = data;
+
+        document.getElementById("result").innerHTML =
+            `<div class="alert mt-2">
+                <a href="${data}" target="_blank">${data}</a>
+             </div>`;
+
+        document.getElementById("url").value = "";
+    })
+    .catch(() => {
+        alert("Error shortening URL");
     });
 
-    // =========================
-    // URL SHORTENER (UNCHANGED)
-    // =========================
-    function shorten() {
-        let url = document.getElementById("url").value.trim();
+  }
 
-        if (!url) {
-            alert("Enter URL");
-            return;
-        }
 
-        document.getElementById("result").innerHTML = "Generating...";
+  // =========================
+  // COPY LINK
+  // =========================
+  function copyLink() {
 
-        fetch("https://linkify-3.onrender.com/api/shorten", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ url: url })
-        })
-        .then(res => res.json())
-        .then(data => {
+      if (!latestURL) {
+          alert("No URL found!");
+          return;
+      }
 
-            if (data.error) {
-                document.getElementById("result").innerHTML =
-                    `<div class="alert">${data.error}</div>`;
-                return;
-            }
+      navigator.clipboard.writeText(latestURL)
+      .then(() => alert("Copied: " + latestURL));
+  }
 
-            let clean = data.shortUrl;
-            latestURL = clean;
-
-            document.getElementById("result").innerHTML =
-                `<div class="alert mt-2">
-                    <a href="${clean}" target="_blank">${clean}</a>
-                 </div>`;
-
-            document.getElementById("url").value = "";
-        })
-        .catch(() => {
-            alert("Error shortening URL");
-        });
-    }
-
-    function copyLink() {
-        if (!latestURL) {
-            alert("No URL found!");
-            return;
-        }
-
-        navigator.clipboard.writeText(latestURL)
-            .then(() => alert("Copied: " + latestURL));
-    }
-
-    // =========================
-    // AUTH FIX (REGISTER + LOGIN)
-    // =========================
-    function handleAuth(type) {
-
-        let username = document.getElementById("username").value;
-        let password = document.getElementById("password").value;
-
-        fetch(`https://linkify-3.onrender.com/auth/${type}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: username,
-                password: password
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-
-            if (data.error) {
-                alert(data.error);
-            } else {
-                alert(data.message);
-            }
-
-            console.log(data);
-        })
-        .catch(err => {
-            console.error("Error:", err);
-            alert("Server error");
-        });
-    }
-
-    </script>
+  </script>
 </body>
 </html>
