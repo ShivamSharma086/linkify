@@ -1,6 +1,7 @@
 package com.linkify.controller;
 
 import com.linkify.service.UrlService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,26 +16,44 @@ public class UrlController {
     @Autowired
     private UrlService urlService;
 
-    // टेस्ट API
+    // =========================
+    // TEST API
+    // =========================
     @GetMapping("/hello")
     public String hello() {
         return "Linkify is working! 🚀";
     }
 
-    // ✅ SHORTEN URL (FIXED using POST)
+    // =========================
+    // SHORTEN URL
+    // =========================
     @PostMapping("/shorten")
-    public String shortenUrl(@RequestBody Map<String, String> body) {
+    public String shortenUrl(@RequestBody Map<String, String> body,
+                             HttpServletRequest request) {
+
         String url = body.get("url");
 
-        if (url == null || url.isEmpty()) {
+        if (url == null || url.trim().isEmpty()) {
             return "Invalid URL";
         }
 
+        // Generate short code
         String shortCode = urlService.shortenUrl(url);
-        return "http://localhost:8080/api/r/" + shortCode;
+
+        // Dynamic base URL
+        String baseUrl = request.getScheme() + "://" + request.getServerName();
+
+        if (request.getServerPort() != 80 && request.getServerPort() != 443) {
+            baseUrl += ":" + request.getServerPort();
+        }
+
+        // Final short URL
+        return baseUrl + "/api/r/" + shortCode;
     }
 
-    // ✅ REDIRECT TO ORIGINAL URL
+    // =========================
+    // REDIRECT TO ORIGINAL URL
+    // =========================
     @GetMapping("/r/{shortCode}")
     public void redirect(@PathVariable String shortCode,
                          HttpServletResponse response) throws IOException {
@@ -49,3 +68,4 @@ public class UrlController {
         response.sendRedirect(originalUrl);
     }
 }
+
