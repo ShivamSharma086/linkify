@@ -170,92 +170,99 @@
 
 </div>
 
-  <script>
+<script>
+    let latestURL = "";
 
-      <script>
+    // =========================
+    // APPLY SAVED THEME
+    // =========================
+    function applyTheme() {
+        const theme = localStorage.getItem("theme");
 
-  let latestURL = "";
-
-  function applyTheme() {
-      const theme = localStorage.getItem("theme");
-
-      if (theme === "dark") {
-          document.body.classList.add("dark-mode");
-      } else {
-          document.body.classList.remove("dark-mode");
-      }
-  }
-
-  window.onload = applyTheme;
-
-  function toggleMode() {
-      let isDark = document.body.classList.toggle("dark-mode");
-      localStorage.setItem("theme", isDark ? "dark" : "light");
-  }
-
-  window.addEventListener("storage", function(event) {
-      if (event.key === "theme") {
-          applyTheme();
-      }
-  });
-
-
-  // =========================
-  // URL SHORTENER FIXED
-  // =========================
-  function shorten() {
-
-    let url = document.getElementById("url").value.trim();
-
-    if (!url) {
-        alert("Enter URL");
-        return;
+        if (theme === "dark") {
+            document.body.classList.add("dark-mode");
+        } else {
+            document.body.classList.remove("dark-mode");
+        }
     }
 
-    document.getElementById("result").innerHTML = "Generating...";
+    // Page load
+    window.onload = applyTheme;
 
-    fetch("/api/shorten", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            url: url
-        })
-    })
-    .then(res => res.text())
-    .then(data => {
+    // =========================
+    // TOGGLE DARK MODE
+    // =========================
+    function toggleMode() {
+        let isDark = document.body.classList.toggle("dark-mode");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+    }
 
-        latestURL = data;
-
-        document.getElementById("result").innerHTML =
-            `<div class="alert mt-2">
-                <a href="${data}" target="_blank">${data}</a>
-             </div>`;
-
-        document.getElementById("url").value = "";
-    })
-    .catch(() => {
-        alert("Error shortening URL");
+    // Sync theme in multiple tabs
+    window.addEventListener("storage", function(event) {
+        if (event.key === "theme") {
+            applyTheme();
+        }
     });
 
-  }
+    // =========================
+    // SHORTEN URL
+    // =========================
+    function shorten() {
 
+        let url = document.getElementById("url").value.trim();
 
-  // =========================
-  // COPY LINK
-  // =========================
-  function copyLink() {
+        if (url === "") {
+            alert("Enter URL");
+            return;
+        }
 
-      if (!latestURL) {
-          alert("No URL found!");
-          return;
-      }
+        document.getElementById("result").innerHTML = "Generating...";
 
-      navigator.clipboard.writeText(latestURL)
-      .then(() => alert("Copied: " + latestURL));
-  }
+        fetch("/api/shorten", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                url: url
+            })
+        })
+        .then(response => response.text())
+        .then(data => {
 
-  </script>
+            latestURL = data;
+
+            document.getElementById("result").innerHTML =
+            `<div class="alert mt-2">
+                <a href="${data}" target="_blank">${data}</a>
+            </div>`;
+
+            document.getElementById("url").value = "";
+        })
+        .catch(error => {
+            console.log(error);
+            alert("Error shortening URL");
+        });
+    }
+
+    // =========================
+    // COPY SHORT LINK
+    // =========================
+    function copyLink() {
+
+        if (latestURL === "") {
+            alert("No URL found!");
+            return;
+        }
+
+        navigator.clipboard.writeText(latestURL)
+        .then(() => {
+            alert("Copied: " + latestURL);
+        })
+        .catch(() => {
+            alert("Copy failed");
+        });
+    }
+</script>
 </body>
 </html>
